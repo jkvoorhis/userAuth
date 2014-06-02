@@ -1,0 +1,20 @@
+{{#if user}}
+  <div class="jumbotron">
+    <h1>View Your Profile</h1>
+    <p>Below is your profile information!</p>
+  </div>
+  
+{{else}}
+  <div class="jumbotron">
+    <h1>Orchestrate User Authentication</h1>
+    <p>Sign in and view your profile!</p>
+    <p>
+      <a href="/signin" class="btn btn-primary btn-lg" role="button">
+        <span class="glyphicon glyphicon-user"></span> 
+        Sign in!
+      </a>
+    </p>
+  </div>
+  
+{{/if}}
+   

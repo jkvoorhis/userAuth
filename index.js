@@ -1,4 +1,5 @@
 var express = require('express'),
+    exphbs  = require('express3-handlebars'),
     passport = require('passport'),
     LocalStrategy = require('passport-local'),
     TwitterStrategy = require('passport-twitter'),
@@ -23,9 +24,6 @@ passport.deserializeUser(function(obj, done) {
 });
 
 // Use the LocalStrategy within Passport.
-//   Strategies in Passport require a `verify` function, which accept
-//   credentials (in this case, an accessToken, refreshToken, and Local
-//   profile), and invoke a callback with a user object.
 // passport.use(new LocalStrategy(
 
 // ));
@@ -44,11 +42,11 @@ function ensureAuthenticated(req, res, next) {
 
 
 // configure Express
-// app.use(express.logger());
+app.use(express.logger());
 app.use(express.cookieParser());
 app.use(express.bodyParser());
 app.use(express.methodOverride());
-app.use(express.session({ secret: 'cookie monster' }));
+app.use(express.session({ secret: 'supernova' }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -71,9 +69,20 @@ app.use(function(req, res, next){
 
 app.use(app.router);
 
-// app.get('/signin', function(req, res){
-//   res.render('signin');
-// });
+var hbs = exphbs.create({
+    defaultLayout: 'main',
+    // helpers: helpers
+});
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
+
+app.get('/',  function(req, res){
+  res.render('home');
+});
+
+app.get('/signin', function(req, res){
+  res.render('signin');
+});
 
 app.listen(process.env.PORT || 5000);
 console.log("on 5000!");
