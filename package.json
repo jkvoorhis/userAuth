@@ -1,0 +1,21 @@
+{
+  "name": "userAuth",
+  "version": "0.0.0",
+  "description": "Tutorial walking through user Auth with express passport and Orchestrate",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jhenna Voorhis",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^3.5.0",
+    "orchestrate": "^0.1.2",
+    "passport": "^0.2.0",
+    "passport-facebook": "^1.0.3",
+    "passport-google": "^0.3.0",
+    "passport-local": "^1.0.0",
+    "passport-twitter": "^1.0.2",
+    "q": "^1.0.1"
+  }
+}
