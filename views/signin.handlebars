@@ -2,9 +2,44 @@
   <h1>Sign in</h1>
   <p>We're using passport.js to demonstrate user authentication. Please sign-in with your Local, Twitter, Google, or Facebook account to view your profile.</p>
   <p>
-    <a href="/auth/local" class="btn btn-primary btn-lg" role="button"><span class="glyphicon glyphicon-user"></span> Sign in Locally</a>
+    <a data-toggle="collapse" href="#local" class="btn btn-primary btn-lg" role="button"><span class="glyphicon glyphicon-user"></span> Sign in Locally</a>
     <a href="/auth/twitter" class="btn btn-primary btn-lg" role="button"><span class="glyphicon glyphicon-user"></span> Sign in with Twitter</a>
     <a href="/auth/google" class="btn btn-primary btn-lg" role="button"><span class="glyphicon glyphicon-user"></span> Sign in with Google</a>
     <a href="/auth/facebook" class="btn btn-primary btn-lg" role="button"><span class="glyphicon glyphicon-user"></span> Sign in with Facebook</a>
   </p>
+
+  <div id="local" class="collapse">
+    <a data-toggle="collapse" href="#local-sign-in" class="btn btn-success btn-md" role="button">I already have an account</a>
+    <a data-toggle="collapse" href="#local-reg" class="btn btn-danger btn-md" role="button">I need to make an account</a>
+  </div>
+
+  <form id="local-sign-in" class="collapse" action="/login" method="post">
+    <div>
+        <p></p>
+        <label>Username:</label>
+        <input type="text" name="username"/>
+    </div>
+    <div>
+        <label>Password:</label>
+        <input type="password" name="password"/>
+    </div>
+    <div>
+        <input type="submit" class="btn btn-primary btn-sm" value="Log In"/>
+    </div>
+  </form>
+
+  <form id="local-reg" class="collapse" action="/local-reg" method="post">
+    <div>
+        <p></p>
+        <label>Username:</label>
+        <input type="text" name="username"/>
+    </div>
+    <div>
+        <label>Password:</label>
+        <input type="password" name="password"/>
+    </div>
+    <div>
+        <input type="submit" class="btn btn-primary btn-sm" value="Register"/>
+    </div>
+  </form>
 </div>

@@ -24,9 +24,20 @@ passport.deserializeUser(function(obj, done) {
 });
 
 // Use the LocalStrategy within Passport.
-// passport.use(new LocalStrategy(
-
-// ));
+passport.use(new LocalStrategy(
+  function(username, password, done) {
+    User.findOne({ username: username }, function(err, user) {  //need to rewrite the findOne function to connect to orch
+      if (err) { return done(err); }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
+      }
+      if (!user.validPassword(password)) {
+        return done(null, false, { message: 'Incorrect password.' });
+      }
+      return done(null, user);
+    });
+  }
+));
 
 // Simple route middleware to ensure user is authenticated.
 //   Use this route middleware on any resource that needs to be protected.  If
@@ -83,6 +94,12 @@ app.get('/',  function(req, res){
 app.get('/signin', function(req, res){
   res.render('signin');
 });
+
+app.post('/login',
+  passport.authenticate('local', { successRedirect: '/',
+                                   failureRedirect: '/signin',
+                                   failureFlash: true })
+);
 
 app.listen(process.env.PORT || 5000);
 console.log("on 5000!");
