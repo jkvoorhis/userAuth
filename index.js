@@ -4,11 +4,11 @@ var express = require('express'),
     LocalStrategy = require('passport-local'),
     TwitterStrategy = require('passport-twitter'),
     GoolgeStrategy = require('passport-google'),
-    FacebookStrategy = require('passport-facebook'),
-    bcrypt = require('bcryptjs'),
-    Q = require('q'),
-    config = require('./config'), //config file contains all tokens and other private info
-    db = require('orchestrate')(config.db); //config.db holds Orchestrate token
+    FacebookStrategy = require('passport-facebook');
+    
+
+var config = require('./config.js'), //config file contains all tokens and other private info
+    funct = require('./functions.js');
 
 var app = express();
 
@@ -20,69 +20,32 @@ var app = express();
 //   have a database of user records, the complete GitHub profile is serialized
 //   and deserialized.
 passport.serializeUser(function(user, done) {
+  console.log("serializing " + user.username);
   done(null, user);
 });
 
 passport.deserializeUser(function(obj, done) {
+  console.log("deserializing " + obj);
   done(null, obj);
 });
-
-
-//function to put a local user in DB when they register
-function localReg (username, password) {
-  var deferred = Q.defer();
-  var hash = bcrypt.hashSync(password, 8);
-  var user = {
-    "username": username,
-    "password": hash,
-    "avatar": "http://placepuppy.it/images/homepage/Beagle_puppy_6_weeks.JPG"
-  }
-  db.put('local-users', username, user)
-  .then(function () {
-    console.log("USER: " + user);
-    deferred.resolve(user);
-  })
-  .fail(function (err) {
-    console.log("PUT FAIL:" + err.body);
-    deferred.resolve(err);
-  });
-  return deferred.promise;
-};
-
-function localAuth (username, password) {
-  var deferred = Q.defer();
-
-  db.get('local-users', username)
-  .then(function (result){
-    console.log("FOUND USER");
-    var hash = result.body.password;
-    console.log(hash);
-    console.log(bcrypt.compareSync(password, hash));
-    if (bcrypt.compareSync(password, hash)) {
-      deferred.resolve(result.body);
-    } else {
-      deferred.resolve("Passwords did not match");
-    }
-  }).fail(function (err){
-    console.log(err.body);
-    deferred.resolve(err.body);
-  });
-
-  return deferred.promise;
-  //check if user exists
-    //if user exists check if passwords match (use bcrypt.compareSync(password, hash); // true where 'hash' is password in DB)
-      //if password matches take into website
-  //if user doesn't exist or password doesn't match tell them it failed
-}
 
 // Use the LocalStrategy within Passport to login users.
 //NEED TO ADD FUNCTIONALITY TO SEE IF USER ALREADY EXISTS BEFORE CREATING
 passport.use('local-signin', new LocalStrategy(
-  function(username, password, done) {
-    localAuth(username, password)
+  {passReqToCallback : true}, //allows us to pass back the request to the callback
+  function(req, username, password, done) {
+    funct.localAuth(username, password)
     .then(function (user) {
-      console.log("LOGGED IN AS: " + user.username);
-      done(null, user);
+      if (user) {
+        console.log("LOGGED IN AS: " + user.username);
+        req.session.success = 'You are successfully logged in ' + user.username + '!';
+        done(null, user);
+      }
+      if (!user) {
+        console.log("COULD NOT LOG IN");
+        req.session.error = 'Could not log user in. Please try again.'; //inform user could not log them in
+        done(null, user);
+      }
     })
     .fail(function (err){
       console.log(err.body);
@@ -93,11 +56,24 @@ passport.use('local-signin', new LocalStrategy(
 // Use the LocalStrategy within Passport to Register/"signup" users.
 //NEED TO ADD FUNCTIONALITY TO SEE IF USER ALREADY EXISTS BEFORE CREATING
 passport.use('local-signup', new LocalStrategy(
-  function(username, password, done) {
-    localReg(username, password)
+  {passReqToCallback : true}, //allows us to pass back the request to the callback
+  function(req, username, password, done) {
+    funct.localReg(username, password)
     .then(function (user) {
-      console.log(user);
-      done(null, user);
+      if (user.err) {
+        req.session.error = 'An error occured, please try again.'; //inform user could not log them in
+        done(null, false);
+      }
+      if (user) {
+        console.log("REGISTERED: " + user.username);
+        req.session.success = 'You are successfully registered and logged in ' + user.username + '!';
+        done(null, user);
+      }
+      if (!user) {
+        console.log("COULD NOT REGISTER");
+        req.session.error = 'That username is already in use, please try a different one.'; //inform user could not log them in
+        done(null, user);
+      }
     })
     .fail(function (err){
       console.log(err.body);
@@ -130,16 +106,16 @@ app.use(passport.session());
 // Session-persisted message middleware
 app.use(function(req, res, next){
   var err = req.session.error,
-    msg = req.session.notice,
-    success = req.session.success;
+      msg = req.session.notice,
+      success = req.session.success;
 
   delete req.session.error;
   delete req.session.success;
   delete req.session.notice;
 
   if (err) res.locals.error = err;
-    if (msg) res.locals.notice = msg;
-    if (success) res.locals.success = success;
+  if (msg) res.locals.notice = msg;
+  if (success) res.locals.success = success;
 
   next();
 });
@@ -164,14 +140,14 @@ app.get('/signin', function(req, res){
 app.post('/local-reg', passport.authenticate('local-signup', {
   successRedirect: '/',
   failureRedirect: '/signin',
-  failureFlash: true 
+  // failureFlash: true 
   })
 );
 
 app.post('/login', passport.authenticate('local-signin', { 
   successRedirect: '/',
   failureRedirect: '/signin',
-  failureFlash: true 
+  // failureFlash: true 
   })
 );
 
