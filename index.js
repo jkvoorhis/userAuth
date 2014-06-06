@@ -30,7 +30,7 @@ passport.deserializeUser(function(obj, done) {
 });
 
 // Use the LocalStrategy within Passport to login users.
-//NEED TO ADD FUNCTIONALITY TO SEE IF USER ALREADY EXISTS BEFORE CREATING
+// NEED TO ADD FUNCTIONALITY TO SEE IF USER ALREADY EXISTS BEFORE CREATING
 passport.use('local-signin', new LocalStrategy(
   {passReqToCallback : true}, //allows us to pass back the request to the callback
   function(req, username, password, done) {
@@ -60,10 +60,6 @@ passport.use('local-signup', new LocalStrategy(
   function(req, username, password, done) {
     funct.localReg(username, password)
     .then(function (user) {
-      // if (user.err) {
-      //   req.session.error = 'An error occured, please try again.'; //inform user could not log them in
-      //   done(null, false);
-      // }
       if (user) {
         console.log("REGISTERED: " + user.username);
         req.session.success = 'You are successfully registered and logged in ' + user.username + '!';
