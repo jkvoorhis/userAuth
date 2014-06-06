@@ -60,10 +60,10 @@ passport.use('local-signup', new LocalStrategy(
   function(req, username, password, done) {
     funct.localReg(username, password)
     .then(function (user) {
-      if (user.err) {
-        req.session.error = 'An error occured, please try again.'; //inform user could not log them in
-        done(null, false);
-      }
+      // if (user.err) {
+      //   req.session.error = 'An error occured, please try again.'; //inform user could not log them in
+      //   done(null, false);
+      // }
       if (user) {
         console.log("REGISTERED: " + user.username);
         req.session.success = 'You are successfully registered and logged in ' + user.username + '!';
@@ -129,7 +129,7 @@ var hbs = exphbs.create({
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
-app.get('/',  function(req, res){
+app.get('/', function(req, res){
   res.render('home', {user: req.user});
 });
 
@@ -139,17 +139,23 @@ app.get('/signin', function(req, res){
 
 app.post('/local-reg', passport.authenticate('local-signup', {
   successRedirect: '/',
-  failureRedirect: '/signin',
-  // failureFlash: true 
+  failureRedirect: '/signin'
   })
 );
 
 app.post('/login', passport.authenticate('local-signin', { 
   successRedirect: '/',
-  failureRedirect: '/signin',
-  // failureFlash: true 
+  failureRedirect: '/signin'
   })
 );
+
+app.get('/logout', function(req, res){
+  var name = req.user.username;
+  console.log("LOGGIN OUT " + req.user.username)
+  req.logout();
+  res.redirect('/');
+  req.session.notice = "You have successfully been logged out " + name + "!";
+});
 
 var port = process.env.PORT || 5000;
 app.listen(port);
