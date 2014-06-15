@@ -12,6 +12,8 @@ var config = require('./config.js'), //config file contains all tokens and other
 
 var app = express();
 
+//===============PASSPORT=================
+
 // Passport session setup.
 //   To support persistent login sessions, Passport needs to be able to
 //   serialize users into and deserialize users out of the session.  Typically,
@@ -30,7 +32,6 @@ passport.deserializeUser(function(obj, done) {
 });
 
 // Use the LocalStrategy within Passport to login users.
-// NEED TO ADD FUNCTIONALITY TO SEE IF USER ALREADY EXISTS BEFORE CREATING
 passport.use('local-signin', new LocalStrategy(
   {passReqToCallback : true}, //allows us to pass back the request to the callback
   function(req, username, password, done) {
@@ -54,7 +55,6 @@ passport.use('local-signin', new LocalStrategy(
 ));
 
 // Use the LocalStrategy within Passport to Register/"signup" users.
-//NEED TO ADD FUNCTIONALITY TO SEE IF USER ALREADY EXISTS BEFORE CREATING
 passport.use('local-signup', new LocalStrategy(
   {passReqToCallback : true}, //allows us to pass back the request to the callback
   function(req, username, password, done) {
@@ -78,10 +78,6 @@ passport.use('local-signup', new LocalStrategy(
 ));
 
 // Simple route middleware to ensure user is authenticated.
-//   Use this route middleware on any resource that needs to be protected.  If
-//   the request is authenticated (typically via a persistent login session),
-//   the request will proceed.  Otherwise, the user will be redirected to the
-//   login page.
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
   req.session.error = 'Please sign in!';
@@ -89,8 +85,9 @@ function ensureAuthenticated(req, res, next) {
 }
 
 
+//===============EXPRESS=================
 
-// configure Express
+// Configure Express
 app.use(express.logger());
 app.use(express.cookieParser());
 app.use(express.bodyParser());
@@ -118,13 +115,15 @@ app.use(function(req, res, next){
 
 app.use(app.router);
 
+// Configure express to use handlebars templates
 var hbs = exphbs.create({
     defaultLayout: 'main',
-    // helpers: helpers
 });
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
+
+//===============ROUTES=================
 app.get('/', function(req, res){
   res.render('home', {user: req.user});
 });
@@ -153,6 +152,8 @@ app.get('/logout', function(req, res){
   req.session.notice = "You have successfully been logged out " + name + "!";
 });
 
+
+//===============PORT=================
 var port = process.env.PORT || 5000;
 app.listen(port);
-console.log("on " + port + "!");
+console.log("listening on " + port + "!");
