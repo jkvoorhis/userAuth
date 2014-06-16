@@ -15,12 +15,6 @@ var app = express();
 //===============PASSPORT=================
 
 // Passport session setup.
-//   To support persistent login sessions, Passport needs to be able to
-//   serialize users into and deserialize users out of the session.  Typically,
-//   this will be as simple as storing the user ID when serializing, and finding
-//   the user by ID when deserializing.  However, since this example does not
-//   have a database of user records, the complete GitHub profile is serialized
-//   and deserialized.
 passport.serializeUser(function(user, done) {
   console.log("serializing " + user.username);
   done(null, user);
@@ -124,26 +118,31 @@ app.set('view engine', 'handlebars');
 
 
 //===============ROUTES=================
+//displays our homepage
 app.get('/', function(req, res){
   res.render('home', {user: req.user});
 });
 
+//displays our signup page
 app.get('/signin', function(req, res){
   res.render('signin');
 });
 
+//sends the request through our local signup strategy, and if successful takes user to homepage, otherwise returns then to signin page
 app.post('/local-reg', passport.authenticate('local-signup', {
   successRedirect: '/',
   failureRedirect: '/signin'
   })
 );
 
+//sends the request through our local login/signin strategy, and if successful takes user to homepage, otherwise returns then to signin page
 app.post('/login', passport.authenticate('local-signin', { 
   successRedirect: '/',
   failureRedirect: '/signin'
   })
 );
 
+//logs user out of site, deleting them from the session, and returns to homepage
 app.get('/logout', function(req, res){
   var name = req.user.username;
   console.log("LOGGIN OUT " + req.user.username)
