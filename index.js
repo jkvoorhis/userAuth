@@ -1,11 +1,15 @@
 var express = require('express'),
-    exphbs  = require('express3-handlebars'),
+    exphbs  = require('express-handlebars'),
+    logger = require('morgan'),
+    cookieParser = require('cookie-parser'),
+    bodyParser = require('body-parser'),
+    methodOverride = require('method-override'),
+    session = require('express-session'),
     passport = require('passport'),
     LocalStrategy = require('passport-local'),
     TwitterStrategy = require('passport-twitter'),
-    GoolgeStrategy = require('passport-google'),
+    GoogleStrategy = require('passport-google'),
     FacebookStrategy = require('passport-facebook');
-    
 
 var config = require('./config.js'), //config file contains all tokens and other private info
     funct = require('./functions.js');
@@ -82,11 +86,12 @@ function ensureAuthenticated(req, res, next) {
 //===============EXPRESS=================
 
 // Configure Express
-app.use(express.logger());
-app.use(express.cookieParser());
-app.use(express.bodyParser());
-app.use(express.methodOverride());
-app.use(express.session({ secret: 'supernova' }));
+app.use(logger('combined'));
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(methodOverride('X-HTTP-Method-Override'));
+app.use(session({secret: 'supernova', saveUninitialized: true, resave: true}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -106,8 +111,6 @@ app.use(function(req, res, next){
 
   next();
 });
-
-app.use(app.router);
 
 // Configure express to use handlebars templates
 var hbs = exphbs.create({
