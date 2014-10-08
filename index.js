@@ -11,13 +11,25 @@ var express = require('express'),
     GoogleStrategy = require('passport-google'),
     FacebookStrategy = require('passport-facebook');
 
-var config = require('./config.js'),
+var config = require('./config.js'), //config file contains all tokens and other private info
     funct = require('./functions.js');
 
 var app = express();
 
-//===============PASSPORT===============
+//===============PASSPORT=================
 
+// Passport session setup.
+passport.serializeUser(function(user, done) {
+  console.log("serializing " + user.username);
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  console.log("deserializing " + obj);
+  done(null, obj);
+});
+
+// Use the LocalStrategy within Passport to login users.
 passport.use('local-signin', new LocalStrategy(
   {passReqToCallback : true}, //allows us to pass back the request to the callback
   function(req, username, password, done) {
@@ -39,7 +51,8 @@ passport.use('local-signin', new LocalStrategy(
     });
   }
 ));
-// Use the LocalStrategy within Passport to register/"signup" users.
+
+// Use the LocalStrategy within Passport to Register/"signup" users.
 passport.use('local-signup', new LocalStrategy(
   {passReqToCallback : true}, //allows us to pass back the request to the callback
   function(req, username, password, done) {
@@ -62,18 +75,17 @@ passport.use('local-signup', new LocalStrategy(
   }
 ));
 
-passport.serializeUser(function(user, done) {
-  console.log("serializing " + user.username);
-  done(null, user);
-});
+// Simple route middleware to ensure user is authenticated.
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) { return next(); }
+  req.session.error = 'Please sign in!';
+  res.redirect('/signin');
+}
 
-passport.deserializeUser(function(obj, done) {
-  console.log("deserializing " + obj);
-  done(null, obj);
-});
 
-//===============EXPRESS================
+//===============EXPRESS=================
 
+// Configure Express
 app.use(logger('combined'));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -83,7 +95,8 @@ app.use(session({secret: 'supernova', saveUninitialized: true, resave: true}));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(function(req, res, next) {
+// Session-persisted message middleware
+app.use(function(req, res, next){
   var err = req.session.error,
       msg = req.session.notice,
       success = req.session.success;
@@ -99,16 +112,15 @@ app.use(function(req, res, next) {
   next();
 });
 
-// app.use(app.router);
-
+// Configure express to use handlebars templates
 var hbs = exphbs.create({
-  defaultLayout: 'main',
+    defaultLayout: 'main',
 });
-
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
-//===============ROUTES===============
+
+//===============ROUTES=================
 //displays our homepage
 app.get('/', function(req, res){
   res.render('home', {user: req.user});
@@ -127,7 +139,7 @@ app.post('/local-reg', passport.authenticate('local-signup', {
 );
 
 //sends the request through our local login/signin strategy, and if successful takes user to homepage, otherwise returns then to signin page
-app.post('/login', passport.authenticate('local-signin', {
+app.post('/login', passport.authenticate('local-signin', { 
   successRedirect: '/',
   failureRedirect: '/signin'
   })
@@ -142,9 +154,8 @@ app.get('/logout', function(req, res){
   req.session.notice = "You have successfully been logged out " + name + "!";
 });
 
+
 //===============PORT=================
-
 var port = process.env.PORT || 5000;
-
 app.listen(port);
 console.log("listening on " + port + "!");
